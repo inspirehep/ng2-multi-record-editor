@@ -39,17 +39,17 @@
             [rotate]="false" (pageChanged)="onPageChange($event.page)" [itemsPerPage]="pageSize" [align]="false"></pagination>
         </div>
       </div>
-      <li *ngFor="let record of records; let count = index; trackBy: trackByFunction" class="list-group list-group-item">
-        <input type="checkbox" [(ngModel)]="recordSelectionStatus[uuids[count]]">
+      <li *ngFor="let filteredRecord of filteredRecords; let i = index; trackBy: trackByItem" class="list-group list-group-item">
+        <input type="checkbox" [(ngModel)]="recordSelectionStatus[uuids[i]]">
         <div *ngIf="previewMode === false;then recordView else diffView"></div>
         <ng-template #diffView>
-          <div *ngIf="validationErrors[count]">
-            <span class="alert-danger">{{validationErrors[count]}}</span>
+          <div *ngIf="validationErrors[i]">
+            <span class="alert-danger">{{validationErrors[i]}}</span>
           </div>
-          <me-diff-view [oldObject]="filterRecord(record)" [newObject]="filterRecord(newRecords[count])"></me-diff-view>
+          <me-any-type-node [value] = "filteredRecord" [diff]="jsonPatches[i]" [depth]="0" [expanded]="true"></me-any-type-node>
         </ng-template>
         <ng-template #recordView>
-          <pre>{{filterRecord(record) | json}} </pre>
+          <me-any-type-node [value] = "filteredRecord" [depth]="0" [expanded]="true"></me-any-type-node>
         </ng-template>
       </li>
       <pagination class="align-right" [totalItems]="totalRecords" [(ngModel)]="currentPage" [maxSize]="3" class="pagination-md"

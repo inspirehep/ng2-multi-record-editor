@@ -4,5 +4,6 @@ export { UserActions } from './user-actions';
 export { Collection } from './collection';
 export { QueryResult } from './query-result';
 export { RecordsPreview } from './records-preview';
-export { RecordsToCompare } from './records-to-compare';
+export { PaginatedRecords } from './paginated-records';
 export { SubmitMessage } from './submit-message';
+export { JsonPatch } from './json-patch';

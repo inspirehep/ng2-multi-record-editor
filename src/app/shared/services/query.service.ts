@@ -27,7 +27,7 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/zip';
 
 import { environment } from '../../../environments/environment';
-import { UserActions, QueryResult, RecordsPreview, RecordsToCompare, SubmitMessage } from '../interfaces';
+import { UserActions, QueryResult, RecordsPreview, PaginatedRecords, SubmitMessage } from '../interfaces';
 
 @Injectable()
 export class QueryService {
@@ -47,35 +47,20 @@ export class QueryService {
       .toPromise();
   }
 
-  previewActions(userActions: UserActions, queryString: string, page: number, pageSize: number): Promise<RecordsPreview> {
+  previewActions(userActions: UserActions, page: number, pageSize: number): Promise<RecordsPreview> {
     return this.http
       .post(`${this.url}/preview`, {
         userActions,
-        queryString,
         pageNum: page,
         pageSize
       }).map(res => res.json())
       .toPromise();
   }
 
-  fetchBundledRecords(query: string, page: number, collection: string, pageSize: number,
-     userActions: UserActions): Observable<RecordsToCompare> {
-    return Observable.zip(
-      this.searchRecords(query, page, collection, pageSize)
-      ,
-      this.http
-        .post(`${this.url}/preview`, {
-          userActions,
-          queryString: query,
-          pageSize,
-          pageNum: page,
-        }).map(res => res.json()),
-      (oldRecords, newRecords) => {
-        return {
-          oldRecords,
-          newRecords
-        };
-      });
+  fetchPaginatedRecords(page: number, pageSize: number): Observable<PaginatedRecords> {
+    return this.http
+      .get(`${this.url}/paginate?pageNum=${page}&pageSize=${pageSize}`)
+      .map(res => res.json());
   }
 
   searchRecords(query: string, page: number, collection: string, pageSize: number): Observable<QueryResult> {

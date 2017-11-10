@@ -1,0 +1,7 @@
+<div *ngIf="expanded">
+  <div [ngSwitch]="valueType">
+      <me-object-node *ngSwitchCase="'object'" [value]="value" [depth]="depth" [diff]="diff"></me-object-node>
+      <me-array-node *ngSwitchCase="'array'" [value]="value" [depth]="depth" [diff]="diff"></me-array-node>
+      <me-primitive-node *ngSwitchCase="'primitive'" [depth]="depth" [value]="value" [diff]="firstDiff"></me-primitive-node>
+    </div>
+  </div>

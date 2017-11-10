@@ -23,6 +23,10 @@ import { ToolbarComponent } from './toolbar/toolbar.component';
 import { EditorToolbarSaveComponent } from './toolbar/editor-toolbar-save/editor-toolbar-save.component';
 import { EditorToolbarSearchComponent } from './toolbar/editor-toolbar-search/editor-toolbar-search.component';
 import { AutocompleteInputComponent } from './autocomplete-input';
+import { PrimitiveNodeComponent } from './json-tree/primitive-node/primitive-node.component';
+import { ObjectNodeComponent } from './json-tree/object-node/object-node.component';
+import { ArrayNodeComponent } from './json-tree/array-node/array-node.component';
+import { AnyTypeNodeComponent } from './json-tree/any-type-node.component';
 
 import { SHARED_SERVICES, SHARED_PIPES } from './shared';
 
@@ -58,6 +62,10 @@ export class RavenErrorHandler implements ErrorHandler {
     ToolbarComponent,
     EditorToolbarSaveComponent,
     EditorToolbarSearchComponent,
+    AnyTypeNodeComponent,
+    PrimitiveNodeComponent,
+    ObjectNodeComponent,
+    ArrayNodeComponent
   ],
   imports: [
     BsDropdownModule.forRoot(),
