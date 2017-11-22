@@ -31,6 +31,7 @@ import { SchemaKeysStoreService } from '../shared/services/schema-keys-store.ser
 import { ParsedAutocompleteInput } from '../shared/interfaces/parsed-autocomplete-input';
 import { TypeaheadMatch } from 'ngx-bootstrap/typeahead';
 import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import { Set } from 'immutable';
@@ -46,8 +47,8 @@ export class AutocompleteInputComponent {
   @Input() className;
   @Input() placeholder;
   @Input() tagsEnabled = false;
-  @Output() valueChange = new EventEmitter<Set<string>>();
-  @Output() tagInsert = new EventEmitter<Set<string>>();
+  @Output() valueChange = new EventEmitter<string | Set<string>>();
+  valueChange$ = new Subject<string>();
   value = '';
   selectedValues = Set<string>();
   currentPath = '';
@@ -72,6 +73,16 @@ export class AutocompleteInputComponent {
         this.schemaKeysStoreService.forPath(state.path).filter(item => item.startsWith(state.query))
       );
     });
+    this.valueChange$
+    .debounceTime(500)
+    .subscribe(value => {
+      this.valueChange.emit(value);
+    });
+  }
+
+  modelChange(value: string) {
+    this.value = value;
+    this.valueChange$.next(this.value);
   }
 
   onSpaceKeydown(event) {
@@ -85,6 +96,9 @@ export class AutocompleteInputComponent {
 
   selectUserInput(match: TypeaheadMatch) {
     this.value = this.currentPath !== '' ? `${this.currentPath}${this.schemaKeysStoreService.separator}${match.value}` : match.value;
+    if (!this.tagsEnabled) {
+      this.valueChange$.next(this.value);
+    }
   }
 
   private getStateForValue(value: string): ParsedAutocompleteInput {
