@@ -46,7 +46,6 @@ export class AddActionComponent {
 
   closeEditor() {
     this.isEditorVisible = false;
-    this.action.mainKey = '';
     this.action.value = {};
   }
 

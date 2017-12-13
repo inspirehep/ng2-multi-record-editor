@@ -53,9 +53,10 @@ export class MultiEditorComponent implements OnInit {
   recordSelectionStatus: { [uuid: string]: boolean } = {};
   previewMode = false;
   selectedCollection: string;
-  newRecords: object[];
+  jsonPatches: object[];
   uuids: string[] = [];
   filterExpressions: Set<string>;
+  filteredRecords: object[];
 
   readonly collections: object[] = [
     ['hep', 'HEP'],
@@ -77,7 +78,6 @@ export class MultiEditorComponent implements OnInit {
     private jsonUtilsService: JsonUtilsService) { }
 
   ngOnInit() {
-    this.newRecords = [];
     this.selectedCollection = this.collections[0][0];
     this.onCollectionChange('hep');
   }
@@ -130,12 +130,18 @@ export class MultiEditorComponent implements OnInit {
 
   onPreviewClick() {
     this.previewedActions = this.userActions;
-    this.queryService.previewActions(this.userActions, this.lastSearchedQuery, this.currentPage, this.pageSize)
+    this.previewActions();
+  }
+
+  previewActions() {
+    this.queryService.previewActions(this.userActions, this.currentPage, this.pageSize)
       .then((res) => {
         this.errorMessage = undefined;
-        this.newRecords = res.json_records;
+        this.records = res.json_records;
+        this.jsonPatches = res.json_patches;
         this.validationErrors = res.errors;
         this.previewMode = true;
+        this.filterRecords(this.filterExpressions);
         this.changeDetectorRef.markForCheck();
       })
       .catch((error) => {
@@ -151,7 +157,28 @@ export class MultiEditorComponent implements OnInit {
 
   onPageChange(page: number) {
     this.currentPage = page;
-    this.previewMode ? this.getBundledRecords() : this.queryCollection(this.lastSearchedQuery, this.lastSearchedCollection);
+    this.previewMode ? this.previewActions() : this.fetchPage();
+  }
+
+  private fetchPage() {
+    this.queryService.fetchPaginatedRecords(this.currentPage, this.pageSize)
+      .toPromise()
+      .then((json) => {
+        this.records = json.json_records;
+        this.uuids = json.uuids;
+        this.setSelectionStatusesForNewPageRecords();
+        this.filterRecords(this.filterExpressions);
+        this.changeDetectorRef.markForCheck();
+      })
+      .catch(error => {
+        if (error.json().message) {
+          this.totalRecords = -1;
+          this.errorMessage = error.json().message;
+        } else {
+          this.errorMessage = error;
+        }
+        this.changeDetectorRef.markForCheck();
+      });
   }
 
   searchRecords(query: string) {
@@ -178,6 +205,7 @@ export class MultiEditorComponent implements OnInit {
         this.totalRecords = json.total_records;
         this.uuids = json.uuids;
         this.setSelectionStatusesForNewPageRecords();
+        this.filterRecords(this.filterExpressions);
         this.changeDetectorRef.markForCheck();
       })
       .catch(error => {
@@ -207,26 +235,8 @@ export class MultiEditorComponent implements OnInit {
       );
   }
 
-  trackByFunction(index: number): number {
-    return index;
-  }
-
-  private getBundledRecords() {
-    this.queryService
-      .fetchBundledRecords(this.lastSearchedQuery, this.currentPage, this.lastSearchedCollection, this.pageSize, this.previewedActions)
-      .subscribe((json) => {
-        this.records = json.oldRecords.json_records;
-        this.errorMessage = undefined;
-        this.uuids = json.oldRecords.uuids;
-        this.setSelectionStatusesForNewPageRecords();
-        this.newRecords = json.newRecords.json_records;
-        this.validationErrors = json.newRecords.errors;
-        this.changeDetectorRef.markForCheck();
-      },
-      error => {
-        this.errorMessage = error;
-        this.changeDetectorRef.markForCheck();
-      });
+  trackByItem(index: number, item: object): object {
+    return item;
   }
 
   filterRecord(record: object): object {
@@ -236,8 +246,12 @@ export class MultiEditorComponent implements OnInit {
     return record;
   }
 
-  filterRecords(newFilterExpressionArray) {
+  filterRecords(newFilterExpressionArray: Set<string>) {
     this.filterExpressions = newFilterExpressionArray;
+    this.filteredRecords = new Array();
+    this.records.forEach(item => {
+      this.filteredRecords.push(this.filterRecord(item));
+    });
     this.changeDetectorRef.markForCheck();
   }
 
