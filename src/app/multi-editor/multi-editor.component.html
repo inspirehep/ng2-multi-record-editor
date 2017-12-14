@@ -1,21 +1,25 @@
 <me-toolbar [canSave]="previewMode" (save)="onSave()" (onSearchRecordClick)="searchRecords($event)" (onCollectionChange)="onCollectionChange($event)"></me-toolbar>
 <div class="container me-container">
   <me-actions></me-actions>
+  
   <div class="me-bar">
     Results
   </div>
 
   <ul class="list-unstyled">
-    <div *ngIf="totalRecords === 0 && !errorMessage" class="alert alert-danger">
+    <div *ngIf="isSearching">
+        <i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
+    </div>
+    <div *ngIf="totalRecords === 0 && !errorMessage && !isSearching" class="alert alert-warning">
       <span>No results found</span>
     </div>
-    <div *ngIf="errorMessage" class="alert alert-warning">
+    <div *ngIf="errorMessage" class="alert alert-danger">
       <span>{{errorMessage}}</span>
     </div>
     <div *ngIf="successMessage" class="alert alert-success">
         <span>{{successMessage}}</span>
       </div>
-    <div *ngIf="totalRecords > 0">
+    <div *ngIf="totalRecords > 0 && !isSearching">
       <div class="tag-filter">
         <label>Show only:</label>
         <me-autocomplete-input type="text" name="key" [tagsEnabled]="true" (valueChange)="filterRecords($event)" placeholder="field key">
