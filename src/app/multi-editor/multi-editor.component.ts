@@ -30,6 +30,8 @@ import 'rxjs/add/operator/toPromise';
 import { SchemaKeysStoreService, QueryService, JsonUtilsService, UserActionsService } from '../shared/services';
 import { UserActions } from '../shared/interfaces';
 import { Set } from 'immutable';
+import { Subscribable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'me-multi-editor',
@@ -57,6 +59,7 @@ export class MultiEditorComponent implements OnInit {
   uuids: string[] = [];
   filterExpressions: Set<string>;
   filteredRecords: object[];
+  searchSubscription: Subscription;
 
   readonly collections: object[] = [
     ['hep', 'HEP'],
@@ -181,6 +184,13 @@ export class MultiEditorComponent implements OnInit {
       });
   }
 
+  get isSearching(): boolean {
+    if (this.searchSubscription && !this.searchSubscription.closed) {
+      return true;
+    } else {
+      return false;
+    }
+  }
   searchRecords(query: string) {
     this.lastSearchedCollection = this.selectedCollection;
     this.currentPage = 1;
@@ -197,9 +207,8 @@ export class MultiEditorComponent implements OnInit {
   private queryCollection(query: string, collection: string) {
     this.successMessage = undefined;
     this.errorMessage = undefined;
-    this.queryService.searchRecords(query, this.currentPage, collection, this.pageSize)
-      .toPromise()
-      .then((json) => {
+    this.searchSubscription = this.queryService.searchRecords(query, this.currentPage, collection, this.pageSize)
+      .subscribe((json) => {
         this.previewMode = false;
         this.records = json.json_records;
         this.totalRecords = json.total_records;
@@ -207,8 +216,8 @@ export class MultiEditorComponent implements OnInit {
         this.setSelectionStatusesForNewPageRecords();
         this.filterRecords(this.filterExpressions);
         this.changeDetectorRef.markForCheck();
-      })
-      .catch(error => {
+      },
+      (error) => {
         if (error.json().message) {
           this.totalRecords = -1;
           this.errorMessage = error.json().message;
