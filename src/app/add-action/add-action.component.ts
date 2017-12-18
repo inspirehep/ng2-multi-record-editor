@@ -24,6 +24,7 @@ import { Component, OnInit, EventEmitter, Output, Input } from '@angular/core';
 import { SchemaKeysStoreService } from '../shared/services/schema-keys-store.service';
 import { Action } from '../shared/interfaces';
 import { AppGlobalsService } from '../shared/services';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'me-addition-action',
@@ -36,8 +37,10 @@ export class AddActionComponent {
   isInputField = false;
   subSchema: object;
   record = {};
+  errorMessage: string;
 
-  constructor(private schemaKeysStoreService: SchemaKeysStoreService) {}
+  constructor(private schemaKeysStoreService: SchemaKeysStoreService,
+              private toastr: ToastrService) { }
 
   saveRecord(record: object) {
     // if user is adding a premitive key return only the value
@@ -50,12 +53,23 @@ export class AddActionComponent {
   }
 
   onValueChange(value: string) {
+    this.errorMessage = null;
     this.action.mainKey = value;
     this.subSchema = this.schemaKeysStoreService.findSubschema(this.action.mainKey);
     this.action.value = {};
   }
 
   openEditor() {
-    this.isEditorVisible = true;
+    if (!this.action.mainKey) {
+      this.toastr.error('Choose a key for the field to be added');
+      return;
+    }
+    else if (!this.subSchema) {
+      this.toastr.error('Choose a key using autocompletion values for the field to be added');
+      return;
+    }
+    else {
+      this.isEditorVisible = true;
+    }
   }
 }

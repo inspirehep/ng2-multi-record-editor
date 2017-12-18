@@ -4,12 +4,15 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule, ErrorHandler } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
+import { CommonModule } from '@angular/common';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AppComponent } from './app.component';
 import { MultiEditorComponent } from './multi-editor';
 import { AlertModule } from 'ngx-bootstrap/alert';
 import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
+import { ToastrModule } from 'ngx-toastr';
 import { ActionTemplateComponent } from './action';
 import { ActionsComponent } from './actions/actions.component';
 import { DiffViewComponent } from './diff-view/diff-view.component';
@@ -27,6 +30,7 @@ import { PrimitiveNodeComponent } from './json-tree/primitive-node/primitive-nod
 import { ObjectNodeComponent } from './json-tree/object-node/object-node.component';
 import { ArrayNodeComponent } from './json-tree/array-node/array-node.component';
 import { AnyTypeNodeComponent } from './json-tree/any-type-node.component';
+
 
 import { SHARED_SERVICES, SHARED_PIPES } from './shared';
 
@@ -75,7 +79,10 @@ export class RavenErrorHandler implements ErrorHandler {
     AlertModule.forRoot(),
     PaginationModule.forRoot(),
     JsonEditorModule,
-    TypeaheadModule.forRoot()
+    TypeaheadModule.forRoot(),
+    CommonModule,
+    BrowserAnimationsModule,
+    ToastrModule.forRoot()
   ],
   providers: [
     ...SHARED_SERVICES,

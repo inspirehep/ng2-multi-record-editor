@@ -60,6 +60,7 @@ export class MultiEditorComponent implements OnInit {
   filterExpressions: Set<string>;
   filteredRecords: object[];
   searchSubscription: Subscription;
+  invalidActions = false;
 
   readonly collections: object[] = [
     ['hep', 'HEP'],
@@ -137,6 +138,21 @@ export class MultiEditorComponent implements OnInit {
   }
 
   previewActions() {
+    if(!this.schemaKeysStoreService.validateActionsKeypaths(this.userActions)){
+      this.invalidActions = true;
+      this.errorMessage = 'Please use the autocompletion to find the correct schema paths';
+      this.changeDetectorRef.markForCheck();
+      return;
+    }else if(!this.checkExistenceOfAction(this.userActions)){
+      this.invalidActions = true;
+      this.errorMessage = 'Please use at least one action to preview';
+      this.changeDetectorRef.markForCheck();
+      return;
+    }
+    else{
+      this.errorMessage = null;
+      this.invalidActions = false;
+    }
     this.queryService.previewActions(this.userActions, this.currentPage, this.pageSize)
       .then((res) => {
         this.errorMessage = undefined;
@@ -264,6 +280,15 @@ export class MultiEditorComponent implements OnInit {
     this.changeDetectorRef.markForCheck();
   }
 
+  checkExistenceOfAction(userActions : UserActions): boolean {
+    let existingAction = false;
+    userActions.actions.forEach(action => {
+      if(action.mainKey){
+        existingAction = true;
+      }
+    });
+    return existingAction;
+  }
 }
 
 
