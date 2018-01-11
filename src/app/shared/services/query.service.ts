@@ -47,25 +47,25 @@ export class QueryService {
       .toPromise();
   }
 
-  previewActions(userActions: UserActions, page: number, pageSize: number): Promise<RecordsPreview> {
+  previewActions(userActions: UserActions, pageNumber: number, size: number): Promise<RecordsPreview> {
     return this.http
       .post(`${this.url}/preview`, {
         userActions,
-        pageNum: page,
-        pageSize
+        number: pageNumber,
+        size
       }).map(res => res.json())
       .toPromise();
   }
 
-  fetchPaginatedRecords(page: number, pageSize: number): Observable<PaginatedRecords> {
+  fetchPaginatedRecords(pageNumber: number, size: number): Observable<PaginatedRecords> {
     return this.http
-      .get(`${this.url}/paginate?pageNum=${page}&pageSize=${pageSize}`)
+      .get(`${this.url}/search?number=${pageNumber}&size=${size}`)
       .map(res => res.json());
   }
 
-  searchRecords(query: string, page: number, collection: string, pageSize: number): Observable<QueryResult> {
+  searchRecords(query: string, pageNumber: number, collection: string, size: number): Observable<QueryResult> {
     return this.http
-      .get(`${this.url}/search?pageNum=${page}&queryString=${query}&index=${collection}&pageSize=${pageSize}`)
+      .get(`${this.url}/search?page=${pageNumber}&q=${query}&index=${collection}&size=${size}`)
       .map(res => res.json());
   }
 
