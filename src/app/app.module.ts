@@ -12,7 +12,6 @@ import { PaginationModule } from 'ngx-bootstrap/pagination';
 import { BsDropdownModule } from 'ngx-bootstrap/dropdown';
 import { ActionTemplateComponent } from './action';
 import { ActionsComponent } from './actions/actions.component';
-import { DiffViewComponent } from './diff-view/diff-view.component';
 import { JsonEditorModule } from 'ng2-json-editor';
 import { TypeaheadModule } from 'ngx-bootstrap/typeahead';
 import { AddActionComponent } from './add-action/add-action.component';
@@ -54,7 +53,6 @@ export class RavenErrorHandler implements ErrorHandler {
     ActionTemplateComponent,
     ActionsComponent,
     AutocompleteInputComponent,
-    DiffViewComponent,
     AddActionComponent,
     DeleteActionComponent,
     UpdateActionComponent,
