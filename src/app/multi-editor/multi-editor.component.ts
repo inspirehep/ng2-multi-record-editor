@@ -25,6 +25,8 @@ import {
   ChangeDetectionStrategy, ChangeDetectorRef
 } from '@angular/core';
 
+import { Response } from '@angular/http';
+
 import 'rxjs/add/operator/toPromise';
 
 import { SchemaKeysStoreService, QueryService, JsonUtilsService, UserActionsService } from '../shared/services';
@@ -32,6 +34,7 @@ import { UserActions } from '../shared/interfaces';
 import { Set } from 'immutable';
 import { Subscribable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'me-multi-editor',
@@ -50,7 +53,6 @@ export class MultiEditorComponent implements OnInit {
   allSelected = true;
   lastSearchedCollection: string;
   previewedActions: UserActions;
-  errorMessage: string;
   successMessage: string;
   recordSelectionStatus: { [uuid: string]: boolean } = {};
   previewMode = false;
@@ -78,7 +80,8 @@ export class MultiEditorComponent implements OnInit {
     private changeDetectorRef: ChangeDetectorRef,
     private queryService: QueryService,
     private userActionsService: UserActionsService,
-    private jsonUtilsService: JsonUtilsService) { }
+    private jsonUtilsService: JsonUtilsService,
+    private toastr: ToastrService) { }
 
   ngOnInit() {
     this.selectedCollection = this.collections[0][0];
@@ -89,18 +92,12 @@ export class MultiEditorComponent implements OnInit {
     let uuids = Object.keys(this.recordSelectionStatus)
       .filter(key => this.recordSelectionStatus[key] !== this.allSelected);
     this.queryService.save(this.previewedActions, uuids, this.allSelected)
-      .then((res) => {
+      .subscribe((res) => {
         this.successMessage = res.message;
         this.totalRecords = -1;
         this.changeDetectorRef.markForCheck();
-      })
-      .catch((error) => {
-        if (error.json().message) {
-          this.totalRecords = -1;
-          this.errorMessage = error.json().message;
-        } else {
-          this.errorMessage = error;
-        }
+      }, (error) => {
+        this.displayErrorMessage(error);
         this.changeDetectorRef.markForCheck();
       });
   }
@@ -137,25 +134,23 @@ export class MultiEditorComponent implements OnInit {
   }
 
   previewActions() {
-    this.queryService.previewActions(this.userActions, this.currentPage, this.pageSize)
-      .then((res) => {
-        this.errorMessage = undefined;
-        this.records = res.json_records;
-        this.jsonPatches = res.json_patches;
-        this.validationErrors = res.errors;
-        this.previewMode = true;
-        this.filterRecords(this.filterExpressions);
-        this.changeDetectorRef.markForCheck();
-      })
-      .catch((error) => {
-        if (error.json().message) {
-          this.totalRecords = -1;
-          this.errorMessage = error.json().message;
-        } else {
-          this.errorMessage = error;
-        }
-        this.changeDetectorRef.markForCheck();
-      });
+    if (!this.hasAnyNonEmptyAction(this.userActions)) {
+      this.toastr.error('Please use at least one action to preview');
+    } else if (!this.validateActionsKeypaths(this.userActions)) {
+      this.toastr.error('Please use valid paths provided by autocompletion');
+    } else {
+      this.queryService.previewActions(this.userActions, this.currentPage, this.pageSize)
+        .subscribe((res) => {
+          this.records = res.json_records;
+          this.jsonPatches = res.json_patches;
+          this.validationErrors = res.errors;
+          this.previewMode = true;
+          this.filterRecords(this.filterExpressions);
+          this.changeDetectorRef.markForCheck();
+        }, (error) => {
+          this.displayErrorMessage(error);
+        });
+    }
   }
 
   onPageChange(page: number) {
@@ -164,23 +159,16 @@ export class MultiEditorComponent implements OnInit {
   }
 
   private fetchPage() {
-    this.queryService.fetchPaginatedRecords(this.currentPage, this.pageSize)
-      .toPromise()
-      .then((json) => {
+    this.queryService
+      .fetchPaginatedRecords(this.currentPage, this.pageSize)
+      .subscribe((json) => {
         this.records = json.json_records;
         this.uuids = json.uuids;
         this.setSelectionStatusesForNewPageRecords();
         this.filterRecords(this.filterExpressions);
         this.changeDetectorRef.markForCheck();
-      })
-      .catch(error => {
-        if (error.json().message) {
-          this.totalRecords = -1;
-          this.errorMessage = error.json().message;
-        } else {
-          this.errorMessage = error;
-        }
-        this.changeDetectorRef.markForCheck();
+      }, (error) => {
+        this.displayErrorMessage(error);
       });
   }
 
@@ -206,7 +194,6 @@ export class MultiEditorComponent implements OnInit {
 
   private queryCollection(query: string, collection: string) {
     this.successMessage = undefined;
-    this.errorMessage = undefined;
     this.searchSubscription = this.queryService.searchRecords(query, this.currentPage, collection, this.pageSize)
       .subscribe((json) => {
         this.previewMode = false;
@@ -216,46 +203,36 @@ export class MultiEditorComponent implements OnInit {
         this.setSelectionStatusesForNewPageRecords();
         this.filterRecords(this.filterExpressions);
         this.changeDetectorRef.markForCheck();
-      },
-      (error) => {
-        if (error.json().message) {
-          this.totalRecords = -1;
-          this.errorMessage = error.json().message;
-        } else {
-          this.errorMessage = error;
-        }
+      }, (error) => {
+        this.displayErrorMessage(error);
+        this.totalRecords = -1;
         this.changeDetectorRef.markForCheck();
-      }
-      );
+      });
   }
 
   onCollectionChange(selectedCollection: string) {
     this.selectedCollection = selectedCollection;
     this.queryService.fetchCollectionSchema(this.selectedCollection)
-      .then(res => {
-        this.errorMessage = undefined;
+      .subscribe((res) => {
         this.schema = res;
         this.schemaKeysStoreService.buildSchemaKeyStore(this.schema);
-      })
-      .catch(error => {
-        this.errorMessage = error;
-        this.changeDetectorRef.markForCheck();
-      }
-      );
+      }, (error) => {
+        this.displayErrorMessage(error);
+      });
   }
 
   trackByItem(index: number, item: object): object {
     return item;
   }
 
-  filterRecord(record: object): object {
+  private filterRecord(record: object): object {
     if (this.filterExpressions && this.filterExpressions.size > 0) {
       return this.jsonUtilsService.filterObject(record, this.filterExpressions);
     }
     return record;
   }
 
-  filterRecords(newFilterExpressionArray: Set<string>) {
+  private filterRecords(newFilterExpressionArray: Set<string>) {
     this.filterExpressions = newFilterExpressionArray;
     this.filteredRecords = new Array();
     this.records.forEach(item => {
@@ -264,6 +241,24 @@ export class MultiEditorComponent implements OnInit {
     this.changeDetectorRef.markForCheck();
   }
 
+  private hasAnyNonEmptyAction(userActions: UserActions): boolean {
+    let existingAction = false;
+    return userActions.actions
+    .some(action => Boolean(action.mainKey));
+  }
+
+  private displayErrorMessage(error: Response) {
+    const errorMessage = error.json().message || 'Something went wrong :)';
+    this.toastr.error(errorMessage);
+  }
+
+  private validateActionsKeypaths(userActions: UserActions): boolean {
+    let invalid = userActions.actions
+      .some(action => !this.schemaKeysStoreService.findSubschema(action.mainKey));
+    if (!invalid) {
+      invalid = userActions.conditions
+      .some(action => !this.schemaKeysStoreService.findSubschema(action.key));
+    }
+    return !invalid;
+  }
 }
-
-

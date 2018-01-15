@@ -36,25 +36,23 @@ export class QueryService {
 
   constructor(private http: Http) { }
 
-  save(userActions: UserActions, checkedRecords: string[], allSelected: boolean): Promise<SubmitMessage> {
+  save(userActions: UserActions, checkedRecords: string[], allSelected: boolean): Observable<SubmitMessage> {
     return this.http
       .post(`${this.url}/update`, {
         userActions,
         ids: checkedRecords,
         allSelected
       }
-      ).map(res => res.json())
-      .toPromise();
+      ).map(res => res.json());
   }
 
-  previewActions(userActions: UserActions, pageNumber: number, size: number): Promise<RecordsPreview> {
+  previewActions(userActions: UserActions, pageNumber: number, size: number): Observable<RecordsPreview> {
     return this.http
       .post(`${this.url}/preview`, {
         userActions,
         number: pageNumber,
         size
-      }).map(res => res.json())
-      .toPromise();
+      }).map(res => res.json());
   }
 
   fetchPaginatedRecords(pageNumber: number, size: number): Observable<PaginatedRecords> {
@@ -69,10 +67,9 @@ export class QueryService {
       .map(res => res.json());
   }
 
-  fetchCollectionSchema(selectedCollection: string): Promise<object> {
+  fetchCollectionSchema(selectedCollection: string): Observable<object> {
     return this.http
       .get(`${this.schemaUrl}/${selectedCollection}.json`)
-      .map(res => res.json())
-      .toPromise();
+      .map(res => res.json());
   }
 }

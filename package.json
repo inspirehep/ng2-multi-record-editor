@@ -15,6 +15,7 @@
     "postversion": "git push upstream && git push upstream --tags"
   },
   "dependencies": {
+    "@angular/animations": "^4.0.0",
     "@angular/common": "^4.0.0",
     "@angular/compiler": "^4.0.0",
     "@angular/core": "^4.0.0",
@@ -28,10 +29,11 @@
     "diff": "^3.3.0",
     "font-awesome": "^4.7.0",
     "immutable": "^3.8.1",
+    "lodash": "^4.17.4",
     "ng2-json-editor": "^0.22.0",
     "ngx-bootstrap": "2.0.0-beta.1",
     "ngx-pagination": "^3.0.1",
-    "lodash": "^4.17.4",
+    "ngx-toastr": "^6.1.4",
     "raven-js": "^3.20.0",
     "rxjs": "^5.1.0",
     "ts-helpers": "^1.1.2",

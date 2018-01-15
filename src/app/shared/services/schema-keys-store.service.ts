@@ -24,6 +24,8 @@ import { Injectable } from '@angular/core';
 import { fromJS, OrderedSet } from 'immutable';
 import * as _ from 'lodash';
 
+import { UserActions } from '../interfaces';
+
 @Injectable()
 export class SchemaKeysStoreService {
 
@@ -86,10 +88,14 @@ export class SchemaKeysStoreService {
       if (subSchema['type'] === 'object') {
         if (subSchema['properties'][splitPath[index]]) {
           subSchema = subSchema['properties'][splitPath[index]];
+        } else {
+          return null;
         }
       } else if (subSchema['type'] === 'array') {
         if (subSchema['items']['properties'][splitPath[index]]) {
           subSchema = subSchema['items']['properties'][splitPath[index]];
+        } else {
+          return null;
         }
       }
     }
