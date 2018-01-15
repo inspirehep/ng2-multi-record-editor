@@ -82,7 +82,7 @@ export class RavenErrorHandler implements ErrorHandler {
     TypeaheadModule.forRoot(),
     CommonModule,
     BrowserAnimationsModule,
-    ToastrModule.forRoot()
+    ToastrModule.forRoot({timeOut: 10000, positionClass: 'toast-top-left' })
   ],
   providers: [
     ...SHARED_SERVICES,

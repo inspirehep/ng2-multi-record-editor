@@ -115,24 +115,5 @@ export class SchemaKeysStoreService {
     return subSchema;
   }
 
-  validateActionsKeypaths(userActions: UserActions): boolean {
-    let invalidActions = false;
-    userActions.actions.forEach(action => {
-      if (!this.findSubschema(action.mainKey)) {
-        invalidActions = true;
-      }
-    })
-    userActions.conditions.forEach(condition => {
-      if (!this.findSubschema(condition.key)) {
-        invalidActions = true;
-      }
-    })
-    if (invalidActions) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
 }
 

@@ -37,10 +37,9 @@ export class AddActionComponent {
   isInputField = false;
   subSchema: object;
   record = {};
-  errorMessage: string;
 
   constructor(private schemaKeysStoreService: SchemaKeysStoreService,
-              private toastr: ToastrService) { }
+    private toastr: ToastrService) { }
 
   saveRecord(record: object) {
     // if user is adding a premitive key return only the value
@@ -53,7 +52,6 @@ export class AddActionComponent {
   }
 
   onValueChange(value: string) {
-    this.errorMessage = null;
     this.action.mainKey = value;
     this.subSchema = this.schemaKeysStoreService.findSubschema(this.action.mainKey);
     this.action.value = {};
@@ -62,13 +60,9 @@ export class AddActionComponent {
   openEditor() {
     if (!this.action.mainKey) {
       this.toastr.error('Choose a key for the field to be added');
-      return;
-    }
-    else if (!this.subSchema) {
+    } else if (!this.subSchema) {
       this.toastr.error('Choose a key using autocompletion values for the field to be added');
-      return;
-    }
-    else {
+    } else {
       this.isEditorVisible = true;
     }
   }

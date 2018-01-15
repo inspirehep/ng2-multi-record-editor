@@ -1,15 +1,12 @@
 <div *ngIf="tagsEnabled then tagTemplate else defaultTemplate"></div>
-<div *ngIf="typeaheadNoResults === true">
-  <i class="fa fa-remove"></i> No Results Found
-</div>
 
 <ng-template #defaultTemplate>
-  <input [ngModel]="value" (ngModelChange)="modelChange($event)" [typeahead]="dataSource" (typeaheadNoResults)="typeaheadNoResults = $event"
-  (typeaheadOnSelect)="selectUserInput($event)" [disabled]="disabled" [attr.class]="className" [typeaheadMinLength]="0">
+  <input class="form-control input-sm" [ngModel]="value" (ngModelChange)="modelChange($event)" [typeahead]="dataSource" (typeaheadNoResults)="typeaheadNoResults = $event"
+  (typeaheadOnSelect)="selectUserInput($event)" [disabled]="disabled" [class.danger]="typeaheadNoResults" [typeaheadMinLength]="0">
 </ng-template>
 
 <ng-template #tagTemplate>
-  <div class="tags-input">
+  <div class="tags-input" [class.danger]="typeaheadNoResults">
     <span *ngFor="let value of selectedValues" class="label label-info tag">
       {{value}} <i class="fa fa-remove" (click)="removeValue(value)"></i>
     </span>
